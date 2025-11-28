@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply bg-[#F5F7FA] text-gray-800;
+  }
+
+  label {
+    @apply text-sm text-gray-700;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-md shadow;
+  }
+
+  .input {
+    @apply w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 rounded-md px-3 py-2;
+  }
+
+  .select {
+    @apply w-full bg-white border border-gray-300 text-gray-800 rounded-md px-3 py-2;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2.5 px-5 font-medium;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md py-2.5 px-5 font-medium;
+  }
+
+  .table-header {
+    @apply bg-gray-100 text-gray-600;
+  }
+
+  .badge {
+    @apply inline-block px-2 py-1 rounded text-white text-xs font-medium;
+  }
+
+  .badge-completed {
+    @apply bg-green-500;
+  }
+
+  .badge-pending {
+    @apply bg-yellow-500;
+  }
+
+  .badge-notdone {
+    @apply bg-red-500;
+  }
+
+  /* Additional badge styles for various task states */
+  .badge-in-progress {
+    /* Blue background, white text - good contrast */
+    @apply bg-blue-600;
+  }
+
+  .badge-hold {
+    /* Purple background, white text */
+    @apply bg-purple-600;
+  }
+
+  .badge-carry-forward {
+    /* Dark/black background, white text for maximum contrast */
+    @apply bg-gray-900;
+  }
+}
