@@ -33,6 +33,7 @@ export default function Sidebar() {
             ) : (
                 <div className="space-y-1">
                     <div className="px-3 text-xs font-semibold text-gray-500 uppercase">Admin</div>
+                    {/* <LinkItem to="/dashboard" label="Dashboard" /> */}
                     <LinkItem to="/admin" label="Overview" />
                     <LinkItem to="/admin/tasks" label="Default Tasks" />
                     <LinkItem to="/admin/reviews" label="Reviews" />

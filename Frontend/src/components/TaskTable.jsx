@@ -33,7 +33,7 @@ export default function TaskTable({ tasks = [], onSetCompleted, onSetNotDone, on
                             return (
                                 <tr key={t.taskId || t.id} className="border-t hover:bg-gray-50">
                                     <td className="px-4 py-2">{t.title}</td>
-                                    <td className="px-4 py-2 text-gray-700">{t.category || '-'}</td>
+                                    <td className="px-4 py-2 text-gray-700">{t.type || '-'}</td>
                                     <td className="px-4 py-2">
                                         <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
                                             {t.priority || 'Medium'}

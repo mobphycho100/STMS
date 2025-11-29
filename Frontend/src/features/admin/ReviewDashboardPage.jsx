@@ -4,52 +4,44 @@ import ReviewModal from '../../components/ReviewModal';
 
 export default function ReviewDashboardPage() {
     const { pending, load, approve, reject, loading } = useReviewStore();
-    const [modal, setModal] = useState({ open: false, action: null, dailyLogId: null, taskId: null });
+    const [modal, setModal] = useState({ open: false, action: null, taskId: null });
 
     useEffect(() => { load({}); }, [load]);
 
-    const openModal = (action, dailyLogId, taskId) => setModal({ open: true, action, dailyLogId, taskId });
-    const closeModal = () => setModal({ open: false, action: null, dailyLogId: null, taskId: null });
+    const openModal = (action, taskId) => setModal({ open: true, action, taskId });
+    const closeModal = () => setModal({ open: false, action: null, taskId: null });
 
     const submit = async (comment) => {
-        const { action, dailyLogId, taskId } = modal;
-        if (action === 'approve') await approve(dailyLogId, taskId, comment);
-        else await reject(dailyLogId, taskId, comment);
-        closeModal();
-        load({});
+        const { action, taskId } = modal;
+        const ok = action === 'approve' ? await approve(taskId, comment) : await reject(taskId, comment);
+        if (ok) closeModal();
     };
+
+    console.log(pending)
 
     return (
         <div className="space-y-4">
             <div className="bg-white rounded shadow">
                 <div className="px-4 py-2 text-sm font-semibold">Pending Reviews</div>
                 <div className="divide-y">
-                    {pending.map((log) => (
-                        <div key={log.id} className="px-4 py-3">
-                            <div className="text-sm text-gray-600 mb-2">Date: {log.date}</div>
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="text-left bg-gray-50">
-                                        <th className="px-3 py-2">Task</th>
-                                        <th className="px-3 py-2">Type</th>
-                                        <th className="px-3 py-2">Reason</th>
-                                        <th className="px-3 py-2 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {log.tasks.map((t) => (
-                                        <tr key={t.taskId} className="border-t">
-                                            <td className="px-3 py-2">{t.taskId}</td>
-                                            <td className="px-3 py-2">{t.type}</td>
-                                            <td className="px-3 py-2">{t.reasonForNonCompletion}</td>
-                                            <td className="px-3 py-2 text-right">
-                                                <button className="text-green-600 mr-3" onClick={() => openModal('approve', log.id, t.taskId)}>Approve</button>
-                                                <button className="text-red-600" onClick={() => openModal('reject', log.id, t.taskId)}>Reject</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                    {pending.map((t) => (
+                        <div key={t.taskId} className="px-4 py-3">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="text-sm text-gray-600">User: {t.userName || t.userId} • Date: {t.date}</div>
+                                <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs">Pending</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-6 gap-2 text-sm">
+                                <div><span className="text-gray-500">Title:</span> {t.title}</div>
+                                <div><span className="text-gray-500">Category:</span> {t.category}</div>
+                                <div><span className="text-gray-500">Priority:</span> {t.priority}</div>
+                                <div><span className="text-gray-500">Planned:</span> {t.plannedTime}</div>
+                                <div><span className="text-gray-500">Actual:</span> {t.actualTime}</div>
+                                <div className="md:col-span-6"><span className="font-semibold text-gray-700">Reason:</span> <span className="font-medium text-gray-900">{t.reasonForNonCompletion}</span></div>
+                            </div>
+                            <div className="mt-2 text-right">
+                                <button className="text-green-600 mr-3" onClick={() => openModal('approve', t.taskId)}>Approve</button>
+                                <button className="text-red-600" onClick={() => openModal('reject', t.taskId)}>Reject</button>
+                            </div>
                         </div>
                     ))}
                     {pending.length === 0 && (

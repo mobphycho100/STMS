@@ -11,6 +11,7 @@ const {
     customTaskCreateSchema,
     customTaskUpdateSchema,
     customTaskIdParam,
+    adminTaskListQuerySchema,
 } = require('../validation/taskSchemas');
 
 router.use(auth);
@@ -28,6 +29,12 @@ router.put(
     validate(customTaskIdParam, 'params'),
     validate(defaultTaskUpdateSchema),
     taskController.updateDefault
+);
+router.delete(
+    '/default/:id',
+    roles('ADMIN'),
+    validate(customTaskIdParam, 'params'),
+    taskController.deleteDefault
 );
 router.patch(
     '/default/:id/activate',
@@ -51,5 +58,8 @@ router.put(
     taskController.updateCustom
 );
 router.delete('/custom/:id', validate(customTaskIdParam, 'params'), taskController.deleteCustom);
+
+// ADMIN: list tasks by user/date from tasks collection (source of truth)
+router.get('/admin', roles('ADMIN'), validate(adminTaskListQuerySchema, 'query'), taskController.listForAdmin);
 
 module.exports = router;

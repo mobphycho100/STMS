@@ -19,9 +19,11 @@ async function listWithCompliance(month) {
             role: u.role,
             month: monthStr,
             compliancePercentage: report ? report.compliancePercentage : 0,
+            xpPoints: report ? (report.xpPoints || 0) : 0,
         });
     }
-    return results;
+    // Sort users by XP (desc)
+    return results.sort((a, b) => (b.xpPoints || 0) - (a.xpPoints || 0));
 }
 
 module.exports = { listWithCompliance };

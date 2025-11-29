@@ -7,6 +7,8 @@ const defaultTaskCreateSchema = Joi.object({
     title: Joi.string().min(2).max(200).required(),
     description: Joi.string().allow('', null),
     category: Joi.string().allow('', null),
+    priority: Joi.string().valid('Highest', 'High', 'Medium', 'Low', 'Adhoc').optional(),
+    plannedTime: Joi.string().pattern(/^\d{1,2}:\d{2}$/).optional(),
     isActive: Joi.boolean().optional(),
 });
 
@@ -14,6 +16,8 @@ const defaultTaskUpdateSchema = Joi.object({
     title: Joi.string().min(2).max(200).optional(),
     description: Joi.string().allow('', null),
     category: Joi.string().allow('', null),
+    priority: Joi.string().valid('Highest', 'High', 'Medium', 'Low', 'Adhoc').optional(),
+    plannedTime: Joi.string().pattern(/^\d{1,2}:\d{2}$/).optional(),
     isActive: Joi.boolean().optional(),
 });
 
@@ -56,4 +60,8 @@ module.exports = {
     customTaskIdParam,
     objectId,
     TaskType,
+    adminTaskListQuerySchema: Joi.object({
+        userId: objectId().required(),
+        date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+    }),
 };

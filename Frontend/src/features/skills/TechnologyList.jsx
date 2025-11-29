@@ -260,20 +260,20 @@ export default function TechnologyList() {
                                             <span className={`font-medium ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
                                                 {tech.name}
                                             </span>
-                                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${isSelected
+                                            {/* <span className={`text-xs font-semibold px-2 py-1 rounded-full ${isSelected
                                                 ? 'bg-blue-100 text-blue-700'
                                                 : 'bg-gray-100 text-gray-600'
                                                 }`}>
                                                 {percent}%
-                                            </span>
+                                            </span> */}
                                         </div>
 
-                                        <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        {/* <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-green-500 transition-all duration-300"
                                                 style={{ width: `${percent}%` }}
                                             />
-                                        </div>
+                                        </div> */}
                                     </button>
 
                                     {isSelected && (
@@ -443,21 +443,7 @@ export default function TechnologyList() {
                     </div>
                 </div>
 
-                {/* Debug panel - only shown in development */}
-                {process.env.NODE_ENV === 'development' && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-xs">
-                        <div className="font-medium mb-2 text-gray-700">Debug Info</div>
-                        <pre className="text-xs text-gray-600 overflow-auto max-h-40">
-                            {JSON.stringify({
-                                selectedTechId,
-                                loading,
-                                topicCount: progress.topics?.length,
-                                acknowledged: progress.stats?.acknowledged,
-                                cacheKeys: Object.keys(progressCache)
-                            }, null, 2)}
-                        </pre>
-                    </div>
-                )}
+
             </div>
         </div>
     );

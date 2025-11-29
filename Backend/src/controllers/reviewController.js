@@ -36,4 +36,29 @@ async function reject(req, res, next) {
     }
 }
 
-module.exports = { listPending, approve, reject };
+// Task-level approve/reject (source of truth: tasks collection)
+async function approveTask(req, res, next) {
+    try {
+        const { taskId } = req.params;
+        const { comment } = req.body;
+        const task = await reviewService.setTaskReviewStatus(taskId, ReviewStatus.APPROVED, comment);
+        if (!task) return sendError(res, 'Task not found', 404);
+        return sendSuccess(res, task);
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function rejectTask(req, res, next) {
+    try {
+        const { taskId } = req.params;
+        const { comment } = req.body;
+        const task = await reviewService.setTaskReviewStatus(taskId, ReviewStatus.REJECTED, comment);
+        if (!task) return sendError(res, 'Task not found', 404);
+        return sendSuccess(res, task);
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { listPending, approve, reject, approveTask, rejectTask };

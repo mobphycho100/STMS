@@ -23,6 +23,13 @@ const useReportStore = create((set) => ({
             const { data } = await api.get('/reports/monthly', { params });
             if (data?.success) set({ report: data.data });
             return data?.data;
+        } catch (err) {
+            // Gracefully handle not-found
+            if (err?.response?.status === 404) {
+                set({ report: null });
+                return null;
+            }
+            throw err;
         } finally {
             set({ loading: false });
         }

@@ -26,9 +26,17 @@ export default function MonthlyReportPage() {
                     <label className="block text-xs text-gray-600 mb-1">Month</label>
                     <input type="month" className="input" value={month} onChange={(e) => setMonth(e.target.value)} />
                 </div>
-                <button className="btn-primary" onClick={onGenerate} disabled={loading}>Generate</button>
-                <button className="btn-secondary" onClick={onFetch} disabled={loading}>Fetch Existing</button>
+                <button className="btn-primary" onClick={onGenerate} disabled={loading}>{loading ? 'Generating...' : 'Generate'}</button>
+                <button className="btn-secondary" onClick={onFetch} disabled={loading}>{loading ? 'Fetching...' : 'Fetch Existing'}</button>
             </div>
+
+            {loading && !report && (
+                <div className="card p-4 text-sm text-gray-600">Loading...</div>
+            )}
+
+            {!loading && !report && (
+                <div className="card p-4 text-sm text-gray-600">No report found for {month}. Click Generate to create one.</div>
+            )}
 
             <ReportSummaryCard report={report} />
         </div>

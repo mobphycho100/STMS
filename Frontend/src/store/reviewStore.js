@@ -15,14 +15,22 @@ const useReviewStore = create((set) => ({
         }
     },
 
-    approve: async (dailyLogId, taskId, comment) => {
-        const { data } = await api.post(`/reviews/${dailyLogId}/tasks/${taskId}/approve`, { comment });
-        return data?.success;
+    approve: async (taskId, comment) => {
+        const { data } = await api.post(`/reviews/tasks/${taskId}/approve`, { comment });
+        if (data?.success) {
+            set((state) => ({ pending: state.pending.filter((i) => i.taskId !== taskId) }));
+            return true;
+        }
+        return false;
     },
 
-    reject: async (dailyLogId, taskId, comment) => {
-        const { data } = await api.post(`/reviews/${dailyLogId}/tasks/${taskId}/reject`, { comment });
-        return data?.success;
+    reject: async (taskId, comment) => {
+        const { data } = await api.post(`/reviews/tasks/${taskId}/reject`, { comment });
+        if (data?.success) {
+            set((state) => ({ pending: state.pending.filter((i) => i.taskId !== taskId) }));
+            return true;
+        }
+        return false;
     },
 }));
 

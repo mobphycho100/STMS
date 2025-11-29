@@ -52,6 +52,16 @@ async function deactivateDefault(req, res, next) {
     }
 }
 
+async function deleteDefault(req, res, next) {
+    try {
+        const result = await taskService.deleteDefaultTask(req.params.id);
+        if (!result.deleted && !result.deactivated) return sendError(res, 'Task not found', 404);
+        return sendSuccess(res, result);
+    } catch (err) {
+        next(err);
+    }
+}
+
 // USER: Custom tasks
 async function createCustom(req, res, next) {
     try {
@@ -66,7 +76,8 @@ async function createCustom(req, res, next) {
 
 async function listCustom(req, res, next) {
     try {
-        const tasks = await taskService.listCustomTasks(req.user.id);
+        const { date } = req.query || {};
+        const tasks = await taskService.listCustomTasks(req.user.id, date);
         return sendSuccess(res, tasks);
     } catch (err) {
         next(err);
@@ -124,14 +135,27 @@ async function deleteCustom(req, res, next) {
     }
 }
 
+// ADMIN: list tasks for a user and date from tasks collection
+async function listForAdmin(req, res, next) {
+    try {
+        const { userId, date } = req.query;
+        const tasks = await taskService.listTasksForAdmin(userId, date);
+        return sendSuccess(res, tasks);
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     createDefault,
     listDefault,
     updateDefault,
     activateDefault,
     deactivateDefault,
+    deleteDefault,
     createCustom,
     listCustom,
     updateCustom,
     deleteCustom,
+    listForAdmin,
 };

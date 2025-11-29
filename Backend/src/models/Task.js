@@ -40,6 +40,10 @@ const taskSchema = new mongoose.Schema(
             default: '0:00',
         },
         remarks: { type: String, trim: true, default: '' },
+        // Admin reviews on tasks collection
+        reviewStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: undefined },
+        reasonForNonCompletion: { type: String, trim: true, default: '' },
+        reviewComment: { type: String, trim: true, default: '' },
         date: { type: String, trim: true }, // YYYY-MM-DD
         createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

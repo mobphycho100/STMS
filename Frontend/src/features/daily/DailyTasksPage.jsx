@@ -7,10 +7,15 @@ import CustomTaskForm from '../tasks/CustomTaskForm';
 import Modal from '../../components/Modal';
 import { TaskStatus, TaskType } from '../../utils/constants';
 import useAuthStore from '../../store/authStore';
+import useReportStore from '../../store/reportStore';
 
 function today() {
     const d = new Date();
     return d.toISOString().slice(0, 10);
+}
+
+function monthFrom(dateStr) {
+    return (dateStr || '').slice(0, 7);
 }
 
 export default function DailyTasksPage() {
@@ -18,21 +23,25 @@ export default function DailyTasksPage() {
     const { defaultTasks, customTasks, loadDefaultTasks, loadCustomTasks, createCustom, deleteCustom } = useTaskStore();
     const { log, load, upsert, patchTask } = useDailyLogStore();
     const currentUser = useAuthStore((s) => s.user);
+    const { report, generate: generateReport } = useReportStore();
 
     const [taskState, setTaskState] = useState({});
     const [reasonModal, setReasonModal] = useState({ open: false, task: null });
     const [saving, setSaving] = useState(false);
     const [view, setView] = useState({ open: false, task: null, form: {} });
 
-    // Load tasks and log
+    // Load default tasks once on mount
     useEffect(() => {
         loadDefaultTasks();
-        loadCustomTasks();
-    }, [loadDefaultTasks, loadCustomTasks]);
+    }, [loadDefaultTasks]);
 
     useEffect(() => {
-        if (date) load(date);
-    }, [date, load]);
+        if (date) {
+            load(date);
+            loadCustomTasks(date);
+            generateReport(monthFrom(date));
+        }
+    }, [date, load, loadCustomTasks, generateReport]);
 
     // Merge tasks with existing log statuses and include all required fields
     const allTasks = useMemo(() => {
@@ -82,7 +91,7 @@ export default function DailyTasksPage() {
 
     const setCompleted = async (t) => {
         try {
-            const newStatus = 'Completed';
+            const newStatus = 'Completed'; // UI label
             // Update local state immediately for better UX
             setTaskState((s) => ({
                 ...s,
@@ -99,14 +108,16 @@ export default function DailyTasksPage() {
                     status: newStatus
                 });
             } else {
+                // For daily log tasks, patch requires (dailyLogId, taskId, body) and backend enums
                 await useDailyLogStore.getState().patchTask(
+                    useDailyLogStore.getState().log?._id,
                     t.id || t.taskId,
-                    { status: newStatus }
+                    { status: TaskStatus.COMPLETED }
                 );
             }
 
             // Refresh tasks to ensure consistency
-            await useTaskStore.getState().loadCustomTasks();
+            await useTaskStore.getState().loadCustomTasks(date);
             await useTaskStore.getState().loadDefaultTasks();
         } catch (error) {
             console.error('Failed to update task status:', error);
@@ -133,7 +144,7 @@ export default function DailyTasksPage() {
                 ...s,
                 [task.id || task.taskId]: {
                     ...s[task.id || task.taskId],
-                    status: 'Not Done',
+                    status: 'Not Done', // UI label
                     reason,
                 },
             }));
@@ -146,16 +157,14 @@ export default function DailyTasksPage() {
                 });
             } else {
                 await useDailyLogStore.getState().patchTask(
+                    useDailyLogStore.getState().log?._id,
                     task.id || task.taskId,
-                    {
-                        status: 'Not Done',
-                        reasonForNonCompletion: reason
-                    }
+                    { status: TaskStatus.NOT_DONE, reasonForNonCompletion: reason }
                 );
             }
 
             // Refresh tasks to ensure consistency
-            useTaskStore.getState().loadCustomTasks();
+            useTaskStore.getState().loadCustomTasks(date);
             useTaskStore.getState().loadDefaultTasks();
             closeReason();
         } catch (error) {
@@ -174,13 +183,8 @@ export default function DailyTasksPage() {
     const saveAll = async (metrics) => {
         setSaving(true);
         try {
-            const tasks = Object.values(taskState).map((t) => ({
-                taskId: t.taskId,
-                type: t.type,
-                status: t.status,
-                reasonForNonCompletion: t.status === TaskStatus.NOT_DONE ? t.reason || 'No reason' : undefined,
-            }));
-            await upsert({ date, ...metrics, tasks });
+            // Metrics must be saved independently; do not include any tasks here
+            await upsert({ date, ...metrics });
         } finally {
             setSaving(false);
         }
@@ -188,9 +192,11 @@ export default function DailyTasksPage() {
 
     const addCustom = async (payload) => {
         await createCustom(payload);
+        await loadCustomTasks(date);
     };
     const removeCustom = async (id) => {
-        await deleteCustom(id);
+        await deleteCustom(id, date);
+        await loadCustomTasks(date);
     };
 
     const onViewTask = (t) => {
@@ -335,6 +341,14 @@ export default function DailyTasksPage() {
                 <div>
                     <label className="block text-xs text-gray-600 mb-1">Date</label>
                     <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
+                </div>
+            </div>
+
+            {/* XP summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="p-3 rounded bg-fuchsia-50">
+                    <div className="text-xs text-gray-600">XP Points (This Month)</div>
+                    <div className="text-2xl font-bold text-gray-800">{report?.xpPoints ?? 0}</div>
                 </div>
             </div>
 

@@ -15,8 +15,13 @@ const reviewActionBodySchema = Joi.object({
     comment: Joi.string().allow('', null).max(500).optional(),
 });
 
+const reviewTaskParamsSchema = Joi.object({
+    taskId: objectId().required(),
+});
+
 module.exports = {
     pendingQuerySchema,
     reviewActionParamsSchema,
     reviewActionBodySchema,
+    reviewTaskParamsSchema,
 };

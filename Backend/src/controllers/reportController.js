@@ -23,6 +23,7 @@ async function getOne(req, res, next) {
             return sendError(res, 'Forbidden', 403);
         }
         const report = await reportService.getMonthlyReport(targetUserId, month);
+        if (!report) return sendError(res, 'Report not found', 404);
         return sendSuccess(res, report);
     } catch (err) {
         next(err);

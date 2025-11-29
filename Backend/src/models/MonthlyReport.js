@@ -9,6 +9,7 @@ const monthlyReportSchema = new mongoose.Schema(
         compliancePercentage: { type: Number, default: 0 },
         generatedAt: { type: Date, default: Date.now },
         summaryInsights: { type: mongoose.Schema.Types.Mixed, default: {} },
+        xpPoints: { type: Number, default: 0 },
         // New fields
         totalPracticeHours: { type: Number, default: 0 },
         totalMiscHours: { type: Number, default: 0 },
@@ -17,6 +18,10 @@ const monthlyReportSchema = new mongoose.Schema(
         totalConceptsExplained: { type: Number, default: 0 },
         selfLearningGrowth: { type: mongoose.Schema.Types.Mixed, default: {} },
         acknowledgedTopics: { type: [String], default: [] },
+        // Additional counters
+        totalPracticeSessions: { type: Number, default: 0 },
+        standupsPresent: { type: Number, default: 0 },
+        syncupsPresent: { type: Number, default: 0 },
     },
     { timestamps: true }
 );

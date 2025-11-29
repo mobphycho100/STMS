@@ -8,6 +8,7 @@ const {
     pendingQuerySchema,
     reviewActionParamsSchema,
     reviewActionBodySchema,
+    reviewTaskParamsSchema,
 } = require('../validation/reviewSchemas');
 
 router.use(auth, roles('ADMIN'));
@@ -24,6 +25,20 @@ router.post(
     validate(reviewActionParamsSchema, 'params'),
     validate(reviewActionBodySchema),
     reviewController.reject
+);
+
+// Task-level review actions (source of truth: tasks collection)
+router.post(
+    '/tasks/:taskId/approve',
+    validate(reviewTaskParamsSchema, 'params'),
+    validate(reviewActionBodySchema),
+    reviewController.approveTask
+);
+router.post(
+    '/tasks/:taskId/reject',
+    validate(reviewTaskParamsSchema, 'params'),
+    validate(reviewActionBodySchema),
+    reviewController.rejectTask
 );
 
 module.exports = router;

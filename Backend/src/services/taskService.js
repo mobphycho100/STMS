@@ -1,4 +1,5 @@
 const Task = require('../models/Task');
+const DailyLog = require('../models/DailyLog');
 const { TaskType } = require('../utils/constants');
 
 async function createDefaultTask(adminId, data) {
@@ -35,8 +36,30 @@ async function createCustomTask(userId, data, isAdmin = false) {
     return task;
 }
 
-async function listCustomTasks(userId) {
-    return Task.find({ type: TaskType.CUSTOM, $or: [{ createdBy: userId }, { assignedTo: userId }] }).sort({ createdAt: -1 });
+async function listCustomTasks(userId, date) {
+    const base = [{ createdBy: userId }, { assignedTo: userId }];
+    if (!date) {
+        return Task.find({ type: TaskType.CUSTOM, $or: base }).sort({ createdAt: -1 });
+    }
+    const start = new Date(`${date}T00:00:00.000Z`);
+    const end = new Date(`${date}T23:59:59.999Z`);
+    return Task.find({
+        $and: [
+            { type: TaskType.CUSTOM },
+            { $or: base },
+            {
+                $or: [
+                    { date: date },
+                    {
+                        $and: [
+                            { $or: [{ date: null }, { date: '' }, { date: { $exists: false } }] },
+                            { createdAt: { $gte: start, $lte: end } },
+                        ],
+                    },
+                ],
+            },
+        ],
+    }).sort({ createdAt: -1 });
 }
 
 async function updateCustomTask(userId, id, data, isAdmin = false) {
@@ -53,6 +76,14 @@ async function updateCustomTask(userId, id, data, isAdmin = false) {
             update[field] = data[field];
         }
     });
+
+    // When marking Not Done, mark for review
+    if (update.status === 'Not Done') {
+        update.reviewStatus = 'PENDING';
+        if (update.remarks && !update.reasonForNonCompletion) {
+            update.reasonForNonCompletion = update.remarks;
+        }
+    }
 
     // For non-admin users, ensure they can only update specific fields if they're not the owner
     if (!isAdmin) {
@@ -74,6 +105,14 @@ async function updateCustomTask(userId, id, data, isAdmin = false) {
                     restrictedUpdate[field] = update[field];
                 }
             });
+
+            // Carry over reviewStatus and reasonForNonCompletion if marking Not Done
+            if (update.status === 'Not Done') {
+                restrictedUpdate.reviewStatus = 'PENDING';
+                if (update.remarks && !update.reasonForNonCompletion) {
+                    restrictedUpdate.reasonForNonCompletion = update.remarks;
+                }
+            }
 
             // Only proceed if there are allowed fields to update
             if (Object.keys(restrictedUpdate).length === 0) return null;
@@ -115,6 +154,50 @@ async function deleteCustomTask(userId, id, isAdmin = false) {
     return res.deletedCount > 0;
 }
 
+async function deleteDefaultTask(id) {
+    // If referenced in any daily log, deactivate instead of deleting to avoid breaking history
+    const refCount = await DailyLog.countDocuments({ 'tasks.taskId': id });
+    if (refCount > 0) {
+        await Task.updateOne({ _id: id, type: TaskType.DEFAULT }, { $set: { isActive: false } });
+        return { deleted: false, deactivated: true };
+    }
+    const res = await Task.deleteOne({ _id: id, type: TaskType.DEFAULT });
+    return { deleted: res.deletedCount > 0, deactivated: false };
+}
+
+async function listTasksForAdmin(userId, date) {
+    // Source of truth: tasks collection
+    const start = new Date(`${date}T00:00:00.000Z`);
+    const end = new Date(`${date}T23:59:59.999Z`);
+
+    // Default tasks (active) are always visible like on user dashboard
+    const defaultTasks = await Task.find({ type: TaskType.DEFAULT, isActive: true }).lean();
+
+    // Custom tasks for the selected user: either explicitly set to that date,
+    // or with no date but created within that day
+    const customTasks = await Task.find({
+        $and: [
+            { type: TaskType.CUSTOM },
+            { $or: [{ assignedTo: userId }, { createdBy: userId }] },
+            {
+                $or: [
+                    { date: date },
+                    {
+                        $and: [
+                            { $or: [{ date: null }, { date: '' }, { date: { $exists: false } }] },
+                            { createdAt: { $gte: start, $lte: end } },
+                        ],
+                    },
+                ],
+            },
+        ],
+    })
+        .sort({ createdAt: -1 })
+        .lean();
+
+    return [...defaultTasks, ...customTasks];
+}
+
 module.exports = {
     createDefaultTask,
     listDefaultTasks,
@@ -124,4 +207,6 @@ module.exports = {
     listCustomTasks,
     updateCustomTask,
     deleteCustomTask,
+    deleteDefaultTask,
+    listTasksForAdmin,
 };

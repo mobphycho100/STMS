@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import useUserStore from '../../store/userStore';
 import useDailyLogStore from '../../store/dailyLogStore';
+import useAdminLogStore from '../../store/adminLogStore';
 import DatePicker from '../../components/DatePicker';
 
 function today() { const d = new Date(); return d.toISOString().slice(0, 10); }
@@ -8,11 +9,14 @@ function today() { const d = new Date(); return d.toISOString().slice(0, 10); }
 export default function DailyLogsViewerPage() {
     const { users, loadUsers } = useUserStore();
     const { log, load, loading } = useDailyLogStore();
+    const { tasks, loadTasks, loading: loadingTasks } = useAdminLogStore();
     const [userId, setUserId] = useState('');
     const [date, setDate] = useState(today());
 
+    // console.log(tasks);
+
     useEffect(() => { loadUsers(); }, [loadUsers]);
-    useEffect(() => { if (userId && date) load(date, userId); }, [userId, date, load]);
+    useEffect(() => { if (userId && date) { load(date, userId); loadTasks(userId, date); } }, [userId, date, load, loadTasks]);
 
     return (
         <div className="space-y-3">
@@ -46,22 +50,42 @@ export default function DailyLogsViewerPage() {
                             <thead>
                                 <tr className="text-left bg-gray-50">
                                     <th className="px-3 py-2">Task ID</th>
+                                    <th className="px-3 py-2">Title</th>
                                     <th className="px-3 py-2">Type</th>
+                                    <th className="px-3 py-2">Priority</th>
+                                    <th className="px-3 py-2">Planned</th>
+                                    <th className="px-3 py-2">Actual</th>
                                     <th className="px-3 py-2">Status</th>
                                     <th className="px-3 py-2">Review</th>
+                                    <th className="px-3 py-2">Reason</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {log.tasks.map((t, i) => (
+                                {(loadingTasks ? [] : tasks).map((t, i) => (
                                     <tr key={i} className="border-t">
-                                        <td className="px-3 py-2">{t.taskId}</td>
+                                        <td className="px-3 py-2">{t._id}</td>
+                                        <td className="px-3 py-2">{t.title}</td>
                                         <td className="px-3 py-2">{t.type}</td>
+                                        <td className="px-3 py-2">{t.priority}</td>
+                                        <td className="px-3 py-2">{t.plannedTime}</td>
+                                        <td className="px-3 py-2">{t.actualTime}</td>
                                         <td className="px-3 py-2">{t.status}</td>
-                                        <td className="px-3 py-2">{t.reviewStatus}</td>
+                                        <td className="px-3 py-2">
+                                            {t.status === 'Not Done' ? (
+                                                t.reviewStatus === 'PENDING' ? <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs">Pending Review</span>
+                                                    : t.reviewStatus === 'APPROVED' ? <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs">Approved</span>
+                                                        : t.reviewStatus === 'REJECTED' ? <span className="px-2 py-1 rounded bg-red-100 text-red-800 text-xs">Rejected</span>
+                                                            : '-'
+                                            ) : '-'}
+                                        </td>
+                                        <td className="px-3 py-2">{t.reasonForNonCompletion || t.remarks || '-'}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+                        {!loadingTasks && tasks.length === 0 && (
+                            <div className="text-center text-gray-500 py-4">No tasks</div>
+                        )}
                     </div>
                 </div>
             ) : (

@@ -14,7 +14,7 @@ export default function CustomTaskForm({ onSubmit, initialData = {} }) {
         priority: 'Medium',
         status: 'Yet to Start',
         plannedTime: '1:00',
-        actualTime: '0:00',
+        actualTime: '1:00',
         remarks: '',
         ...initialData
     });
@@ -38,14 +38,14 @@ export default function CustomTaskForm({ onSubmit, initialData = {} }) {
                     priority: initialData.priority || 'Medium',
                     status: initialData.status || 'Yet to Start',
                     plannedTime: toHMM(initialData.plannedTime || '1:00'),
-                    actualTime: toHMM(initialData.actualTime || '0:00'),
+                    actualTime: toHMM(initialData.actualTime || '1:00'),
                     remarks: initialData.remarks || ''
                 });
             } else if (!hydratedRef.current) {
                 setFormData(prev => ({
                     ...prev,
                     plannedTime: toHMM(prev.plannedTime || '1:00'),
-                    actualTime: toHMM(prev.actualTime || '0:00'),
+                    actualTime: toHMM(prev.actualTime || '1:00'),
                 }));
             }
             hydratedRef.current = true;
@@ -100,7 +100,7 @@ export default function CustomTaskForm({ onSubmit, initialData = {} }) {
                 priority: 'Medium',
                 status: 'Yet to Start',
                 plannedTime: '1:00',
-                actualTime: '0:00',
+                actualTime: '1:00',
                 remarks: ''
             });
         }
