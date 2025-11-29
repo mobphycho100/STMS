@@ -13,7 +13,22 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: env.corsOrigin, credentials: true }));
+
+// CORS: allow multiple origins and strip trailing slashes
+const allowedOrigins = Array.isArray(env.corsOrigin) ? env.corsOrigin : [env.corsOrigin].filter(Boolean);
+const corsOptions = {
+    origin(origin, callback) {
+        if (!origin) return callback(null, true); // non-browser or same-origin
+        const normalized = origin.replace(/\/$/, '');
+        if (allowedOrigins.includes(normalized)) return callback(null, true);
+        return callback(new Error(`CORS blocked: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 app.use(logger);
